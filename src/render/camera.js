@@ -1,6 +1,9 @@
 // Perspective orbit camera with automatic framing of the action.
 import { add, sub, scale, norm, cross, dot, v3, lerp, clamp } from '../sim/math.js';
 
+/** A body's central joint, whatever its body plan. */
+export const centerOf = (e) => e.joints.pelvis || e.joints.mid || e.joints.chest;
+
 export class Camera {
   constructor() {
     this.yaw = 0.3; // 0 = classic side view (looking along -z)
@@ -23,8 +26,8 @@ export class Camera {
 
   /** Smoothly follow the standing combatants. */
   follow(entities, dt) {
-    const pts = entities.filter((e) => e.state !== 'out').map((e) => e.joints.pelvis);
-    const use = pts.length ? pts : entities.map((e) => e.joints.pelvis);
+    const pts = entities.filter((e) => e.state !== 'out').map(centerOf);
+    const use = pts.length ? pts : entities.map(centerOf);
     if (!use.length) return;
     let cx = 0;
     let cz = 0;

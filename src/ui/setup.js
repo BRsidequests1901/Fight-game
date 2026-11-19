@@ -1,6 +1,7 @@
-// Setup screen: teams, fighters, styles, attributes.
+// Setup screen: teams, fighters, styles/species, attributes.
 import { STYLES, STYLE_IDS } from '../sim/styles.js';
 import { ATTRIBUTES, ATTR_MIN, ATTR_MAX } from '../sim/physiology.js';
+import { getSpecies } from '../sim/species.js';
 
 const el = (tag, props = {}, ...children) => {
   const n = document.createElement(tag);
@@ -13,6 +14,12 @@ const el = (tag, props = {}, ...children) => {
   for (const c of children.flat()) if (c != null) n.append(c);
   return n;
 };
+
+const GROUPS = [
+  ['Striking arts', (s) => !s.category || s.category === 'striking'],
+  ['Grappling arts', (s) => s.category === 'grappling'],
+  ['Animals', (s) => s.category === 'animal'],
+];
 
 export function fighterFromStyle(styleId, name) {
   const s = STYLES[styleId];
@@ -42,7 +49,7 @@ export function hydrateTeams(teams) {
 export function renderTeams(container, state, onChange) {
   const rerender = () => renderTeams(container, state, onChange);
   container.replaceChildren(...state.teams.map((team, ti) => {
-    const card = el('div', { class: 'team', style: { '--team': team.color } });
+    const card = el('div', { class: 'team' });
     card.style.setProperty('--team', team.color);
     card.append(el('div', { class: 'team-head' },
       el('input', { type: 'text', value: team.name, oninput: (e) => { team.name = e.target.value; onChange(); } }),
@@ -62,14 +69,25 @@ export function renderTeams(container, state, onChange) {
     }) : null));
 }
 
+function styleSelect(f, onPick) {
+  return el('select', { onchange: (e) => onPick(e.target.value) },
+    GROUPS.map(([label, test]) => el('optgroup', { label },
+      STYLE_IDS.filter((id) => test(STYLES[id])).map((id) => el('option', { value: id, textContent: STYLES[id].name, selected: id === f.style })))));
+}
+
 function fighterCard(team, f, fi, rerender, onChange) {
   const desc = el('p', { class: 'desc', textContent: STYLES[f.style].description });
   const attrsBox = el('div', { class: 'attrs' });
+  const stanceBox = el('label', {}, 'Stance', el('select', { onchange: (e) => { f.stance = e.target.value; onChange(); } },
+    ['orthodox', 'southpaw'].map((s) => el('option', { value: s, textContent: s, selected: s === f.stance }))));
   const drawAttrs = () => {
+    const species = getSpecies(STYLES[f.style].species);
+    const sr = species.sizeRange;
+    stanceBox.style.visibility = species.humanoid ? 'visible' : 'hidden';
     attrsBox.replaceChildren(
       ...ATTRIBUTES.map(({ key, label, hint }) => slider(label, hint, f.attrs[key], ATTR_MIN, ATTR_MAX, 1, (v) => { f.attrs[key] = v; onChange(); })),
-      slider('Height cm', 'Standing height', f.heightCm, 140, 215, 1, (v) => { f.heightCm = v; onChange(); }),
-      slider('Weight kg', 'Body mass', f.weightKg, 45, 150, 1, (v) => { f.weightKg = v; onChange(); }),
+      slider(sr.heightLabel, 'Body size', f.heightCm, sr.height[0], sr.height[1], 1, (v) => { f.heightCm = v; onChange(); }),
+      slider('Weight kg', 'Body mass', f.weightKg, sr.weight[0], sr.weight[1], sr.weight[1] < 10 ? 0.1 : 1, (v) => { f.weightKg = v; onChange(); }),
       el('div', {}, el('button', {
         textContent: 'Reset to style defaults',
         onclick: () => { Object.assign(f, fighterFromStyle(f.style, f.name), { count: f.count, stance: f.stance }); drawAttrs(); onChange(); },
@@ -80,21 +98,20 @@ function fighterCard(team, f, fi, rerender, onChange) {
   return el('div', { class: 'fighter' },
     el('div', { class: 'fighter-grid' },
       el('label', {}, 'Name', el('input', { type: 'text', value: f.name, oninput: (e) => { f.name = e.target.value; onChange(); } })),
-      el('label', {}, 'Style', el('select', {
-        onchange: (e) => {
-          const keep = { name: f.name, count: f.count, stance: f.stance };
-          Object.assign(f, fighterFromStyle(e.target.value), keep);
-          desc.textContent = STYLES[f.style].description;
-          drawAttrs();
-          onChange();
-        },
-      }, STYLE_IDS.map((id) => el('option', { value: id, textContent: STYLES[id].name, selected: id === f.style })))),
-      el('label', { title: 'Number of identical fighters' }, 'Count', el('input', {
-        type: 'number', min: 1, max: 99, value: f.count,
-        oninput: (e) => { f.count = Math.max(1, Math.min(99, Number(e.target.value) || 1)); onChange(); },
+      el('label', {}, 'Style / creature', styleSelect(f, (id) => {
+        const wasDefaultName = f.name === fighterFromStyle(f.style).name;
+        const keep = { name: wasDefaultName ? fighterFromStyle(id).name : f.name, count: f.count, stance: f.stance };
+        Object.assign(f, fighterFromStyle(id), keep);
+        desc.textContent = STYLES[f.style].description;
+        drawAttrs();
+        onChange();
+        rerender();
       })),
-      el('label', {}, 'Stance', el('select', { onchange: (e) => { f.stance = e.target.value; onChange(); } },
-        ['orthodox', 'southpaw'].map((s) => el('option', { value: s, textContent: s, selected: s === f.stance })))),
+      el('label', { title: 'Number of identical fighters' }, 'Count', el('input', {
+        type: 'number', min: 1, max: 150, value: f.count,
+        oninput: (e) => { f.count = Math.max(1, Math.min(150, Number(e.target.value) || 1)); onChange(); },
+      })),
+      stanceBox,
       team.fighters.length > 1
         ? el('button', { class: 'icon danger', title: 'Remove fighter', textContent: '✕', onclick: () => { team.fighters.splice(fi, 1); rerender(); onChange(); } })
         : el('span'),

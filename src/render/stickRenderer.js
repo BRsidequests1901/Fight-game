@@ -3,6 +3,8 @@
 // (sprites, WebGL meshes, AI video) without touching the simulation.
 import { BACKGROUNDS } from './backgrounds.js';
 import { getBodyPlan } from '../sim/bodies/index.js';
+import { drawOpenPose } from '../export/openpose.js';
+import { centerOf } from './camera.js';
 
 export class StickRenderer {
   constructor(canvas, camera) {
@@ -11,6 +13,7 @@ export class StickRenderer {
     this.camera = camera;
     this.background = 'dojo';
     this.showLabels = true;
+    this.mode = 'stick'; // 'stick' | 'openpose' (AI pose-control view)
   }
 
   resize() {
@@ -24,23 +27,28 @@ export class StickRenderer {
 
   render(snap) {
     const { ctx, camera: cam } = this;
+    if (this.mode === 'openpose') {
+      drawOpenPose(ctx, cam, snap.entities.filter((e) => e.state !== 'out' || e.plan === 'human'), getBodyPlan);
+      return;
+    }
     const bg = BACKGROUNDS[this.background] || BACKGROUNDS.dojo;
     bg.backdrop(ctx, cam.width, cam.height);
     bg.floor(ctx, cam, snap.arenaRadius);
 
-    const ents = snap.entities.map((e) => ({ e, p: cam.project(e.joints.pelvis) })).filter((x) => x.p);
+    const ents = snap.entities.map((e) => ({ e, p: cam.project(centerOf(e)) })).filter((x) => x.p);
     ents.sort((a, b) => b.p.depth - a.p.depth);
 
     for (const { e } of ents) this.drawShadow(e);
     for (const { e, p } of ents) this.drawFigure(e, p, bg);
     this.drawEffects(snap.effects || []);
-    if (this.showLabels) for (const { e } of ents) this.drawLabel(e, bg, snap.entities.length);
+    const many = snap.entities.length > 12;
+    if (this.showLabels) for (const { e } of ents) if (!many || e.plan === 'human') this.drawLabel(e, bg, snap.entities.length);
   }
 
   drawShadow(e) {
     const { ctx, camera: cam } = this;
-    const c = e.joints.pelvis;
-    const r = e.state === 'out' || e.state === 'down' ? 0.55 : 0.32;
+    const c = centerOf(e);
+    const r = (e.state === 'out' || e.state === 'down' ? 0.32 : 0.18) * (e.scale ?? 1.75) * (e.plan === 'quadruped' ? 1.6 : 1);
     ctx.beginPath();
     for (let i = 0; i <= 20; i++) {
       const a = (i / 20) * Math.PI * 2;
@@ -57,21 +65,23 @@ export class StickRenderer {
     const plan = getBodyPlan(e.plan);
     const P = {};
     for (const name of plan.joints) P[name] = cam.project(e.joints[name]);
-    const width = Math.max(2, 0.045 * pp.s);
+    const scale = e.scale ?? 1.75;
+    const width = Math.max(1.5, (plan.boneWidth ?? 0.026) * scale * pp.s);
+    const color = e.dead ? '#6b6b6b' : e.color;
     ctx.save();
     ctx.globalAlpha = e.state === 'out' ? 0.55 : 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     // far bones first, darker; near bones in the team color
     const bones = plan.bones
-      .map(([a, b]) => ({ a: P[a], b: P[b] }))
+      .map(([a, b, w]) => ({ a: P[a], b: P[b], w }))
       .filter((x) => x.a && x.b)
       .map((x) => ({ ...x, d: (x.a.depth + x.b.depth) / 2 }))
       .sort((x, y) => y.d - x.d);
     for (const bn of bones) {
       const far = bn.d > pp.depth + 0.02;
-      ctx.strokeStyle = far ? shade(e.color, -0.35) : e.color;
-      ctx.lineWidth = width;
+      ctx.strokeStyle = far ? shade(color, -0.35) : color;
+      ctx.lineWidth = bn.w ? Math.max(1.5, bn.w * scale * ((bn.a.s + bn.b.s) / 2)) : width;
       ctx.beginPath();
       ctx.moveTo(bn.a.x, bn.a.y);
       ctx.lineTo(bn.b.x, bn.b.y);
@@ -83,7 +93,7 @@ export class StickRenderer {
       const p = P[name];
       if (!p || name === plan.headJoint) continue;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, width * 0.42, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, Math.min(width * 0.42, 6), 0, Math.PI * 2);
       ctx.fill();
     }
     // head
@@ -91,10 +101,10 @@ export class StickRenderer {
     if (h) {
       ctx.beginPath();
       ctx.arc(h.x, h.y, e.headRadius * h.s, 0, Math.PI * 2);
-      ctx.fillStyle = shade(e.color, 0.55);
+      ctx.fillStyle = shade(color, 0.55);
       ctx.fill();
       ctx.lineWidth = Math.max(1.5, width * 0.6);
-      ctx.strokeStyle = e.color;
+      ctx.strokeStyle = color;
       ctx.stroke();
     }
     ctx.restore();

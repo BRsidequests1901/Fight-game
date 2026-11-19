@@ -115,3 +115,13 @@ button.rec { background: #d33; color: #fff; }
   .hud { max-height: none; }
   .log { max-height: 240px; }
 }
+
+.mode-desc { margin: -6px 0 14px; color: var(--muted); font-size: 12.5px; max-width: 900px; }
+.realism input[type=range] { width: 120px; accent-color: var(--accent); }
+.realism output { min-width: 36px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mini { font-size: 11px; color: var(--muted); }
+.hud-inj { font-size: 11px; color: #d33; }
+.hud-team { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.bars { grid-template-columns: repeat(5, 1fr); }
+button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.setup-bar { row-gap: 10px; }

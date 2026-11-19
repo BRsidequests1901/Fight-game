@@ -7,13 +7,15 @@ import { vitalsOf } from './snapshot.js';
 
 export const RECORDING_FORMAT = 'fight-sim-recording';
 export const RECORDING_VERSION = 1;
-const STATE_CODES = ['ready', 'attack', 'defend', 'stagger', 'down', 'out'];
+const STATE_CODES = ['ready', 'attack', 'defend', 'stagger', 'down', 'out', 'grapple'];
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const r2 = (x) => Math.round(x * 100) / 100;
 
 export class Recorder {
-  constructor(sim, { fps = 30 } = {}) {
-    this.fps = fps;
+  constructor(sim, { fps } = {}) {
+    const n = sim.fighters.length;
+    this.fps = fps ?? (n > 30 ? 10 : n > 8 ? 15 : 30);
+    fps = this.fps;
     this.frames = [];
     this.next = 0;
     this.finished = false;
@@ -27,7 +29,7 @@ export class Recorder {
       teams: sim.config.teams.map((t) => ({ name: t.name, color: t.color })),
       skeletons: Object.fromEntries([...plans].map((id) => {
         const p = BODY_PLANS[id];
-        return [id, { joints: p.joints, bones: p.bones, headJoint: p.headJoint }];
+        return [id, { joints: p.joints, bones: p.bones, boneWidth: p.boneWidth, headJoint: p.headJoint }];
       })),
       entities: sim.fighters.map((f) => ({
         id: f.id,
@@ -36,8 +38,10 @@ export class Recorder {
         color: sim.config.teams[f.team].color,
         style: f.style.name,
         styleId: f.styleId,
+        species: f.species.id,
         plan: f.plan.id,
         headRadius: r3(f.body.headRadius),
+        scale: r3(f.body.height),
         heightM: r3(f.body.height),
         massKg: f.body.mass,
         attrs: f.attrs,
@@ -60,7 +64,14 @@ export class Recorder {
           j.push(r3(p.x), r3(p.y), r3(p.z));
         }
         const v = vitalsOf(f);
-        return { s: STATE_CODES.indexOf(f.state), j, v: [r2(v.consciousness), r2(v.body), r2(v.legs), r2(v.stamina)], o: f.outReason || undefined };
+        return {
+          s: STATE_CODES.indexOf(f.state),
+          f: r2(f.facing),
+          j,
+          v: [r2(v.consciousness), r2(v.body), r2(v.legs), r2(v.stamina), r2(v.blood)],
+          o: f.outReason || undefined,
+          d: f.dead ? 1 : undefined,
+        };
       }),
     });
   }
@@ -81,7 +92,7 @@ export class Recorder {
       stateCodes: STATE_CODES,
       frames: this.frames,
       events: sim.events.filter((e) => e.type !== 'throw'),
-      stats: sim.fighters.map((f) => ({ id: f.id, ...f.stats })),
+      stats: sim.fighters.map((f) => ({ id: f.id, ...f.stats, injuries: f.injuries.map((i) => i.label), dead: f.dead })),
     };
   }
 }

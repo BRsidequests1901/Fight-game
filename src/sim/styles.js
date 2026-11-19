@@ -18,6 +18,7 @@ export const STYLES = {
     comboRate: 0.6, aggression: 0.6, footwork: 0.9, rangePref: 1.0,
     defense: { block: 0.45, slip: 0.4, retreat: 0.25, check: 0 },
     attrs: { strength: 13, dexterity: 15, endurance: 15, durability: 13, technique: 15 },
+    grapple: { takedown: 0.1, tdDefense: 0.35, clinch: 0.55, throw: 0.1, top: 0.2, bottom: 0.15, submission: 0.05, escape: 0.35 },
     height: 178, weight: 75,
   },
   muayThai: {
@@ -30,6 +31,7 @@ export const STYLES = {
     comboRate: 0.5, aggression: 0.55, footwork: 0.5, rangePref: 1.0,
     defense: { block: 0.55, slip: 0.1, retreat: 0.2, check: 0.5 },
     attrs: { strength: 15, dexterity: 13, endurance: 16, durability: 15, technique: 15 },
+    grapple: { takedown: 0.15, tdDefense: 0.5, clinch: 0.9, throw: 0.45, top: 0.25, bottom: 0.2, submission: 0.05, escape: 0.45 },
     height: 175, weight: 72,
   },
   tiger: {
@@ -42,6 +44,7 @@ export const STYLES = {
     comboRate: 0.55, aggression: 0.75, footwork: 0.4, rangePref: 0.9,
     defense: { block: 0.55, slip: 0.1, retreat: 0.15, check: 0.1 },
     attrs: { strength: 16, dexterity: 13, endurance: 13, durability: 14, technique: 14 },
+    grapple: { takedown: 0.25, tdDefense: 0.4, clinch: 0.5, throw: 0.35, top: 0.35, bottom: 0.25, submission: 0.15, escape: 0.4 },
     height: 176, weight: 80,
   },
   kungFu: {
@@ -54,6 +57,7 @@ export const STYLES = {
     comboRate: 0.45, aggression: 0.5, footwork: 0.6, rangePref: 1.05,
     defense: { block: 0.55, slip: 0.15, retreat: 0.3, check: 0.1 },
     attrs: { strength: 13, dexterity: 14, endurance: 14, durability: 12, technique: 14 },
+    grapple: { takedown: 0.25, tdDefense: 0.35, clinch: 0.4, throw: 0.35, top: 0.3, bottom: 0.2, submission: 0.15, escape: 0.35 },
     height: 172, weight: 70,
   },
   karate: {
@@ -66,6 +70,7 @@ export const STYLES = {
     comboRate: 0.4, aggression: 0.45, footwork: 0.8, rangePref: 1.1,
     defense: { block: 0.45, slip: 0.1, retreat: 0.45, check: 0.1 },
     attrs: { strength: 13, dexterity: 15, endurance: 14, durability: 13, technique: 15 },
+    grapple: { takedown: 0.15, tdDefense: 0.35, clinch: 0.35, throw: 0.25, top: 0.25, bottom: 0.2, submission: 0.1, escape: 0.35 },
     height: 175, weight: 72,
   },
   taekwondo: {
@@ -78,6 +83,7 @@ export const STYLES = {
     comboRate: 0.45, aggression: 0.5, footwork: 0.95, rangePref: 1.15,
     defense: { block: 0.35, slip: 0.1, retreat: 0.55, check: 0.05 },
     attrs: { strength: 12, dexterity: 16, endurance: 15, durability: 12, technique: 15 },
+    grapple: { takedown: 0.1, tdDefense: 0.3, clinch: 0.25, throw: 0.1, top: 0.2, bottom: 0.15, submission: 0.05, escape: 0.35 },
     height: 178, weight: 68,
   },
   wingChun: {
@@ -90,7 +96,64 @@ export const STYLES = {
     comboRate: 0.75, aggression: 0.7, footwork: 0.35, rangePref: 0.8,
     defense: { block: 0.7, slip: 0.1, retreat: 0.1, check: 0.1 },
     attrs: { strength: 12, dexterity: 15, endurance: 14, durability: 12, technique: 15 },
+    grapple: { takedown: 0.15, tdDefense: 0.35, clinch: 0.45, throw: 0.2, top: 0.25, bottom: 0.2, submission: 0.1, escape: 0.35 },
     height: 170, weight: 66,
+  },
+  wrestling: {
+    name: 'Wrestling', category: 'grappling',
+    description: 'Freestyle/folkstyle: explosive double-legs, top control and ground-and-pound. Basic punches otherwise.',
+    stance: { width: 0.2, depth: 0.2, crouch: 0.12, lean: 0.3, twist: 0.25, bounce: 0.004 },
+    guard: { lead: [0.22, 0.08, 0.7], rear: [0.18, -0.08, 0.7], coverage: 0.2 },
+    techniques: { doubleLeg: 4, clinchEntry: 1.5, jab: 2, cross: 1.5, hipThrow: 1 },
+    combos: [['jab', 'doubleLeg'], ['jab', 'cross']],
+    comboRate: 0.35, aggression: 0.6, footwork: 0.55, rangePref: 0.95,
+    defense: { block: 0.4, slip: 0.1, retreat: 0.25, check: 0, sprawl: 1.2 },
+    grapple: { takedown: 0.95, tdDefense: 0.9, clinch: 0.75, throw: 0.6, top: 0.9, bottom: 0.55, submission: 0.35, escape: 0.85 },
+    groundPlan: 'pound',
+    attrs: { strength: 16, dexterity: 13, endurance: 17, durability: 14, technique: 15 },
+    height: 177, weight: 80,
+  },
+  bjj: {
+    name: 'Brazilian Jiu-Jitsu', category: 'grappling',
+    description: 'Gets the fight to the ground (takedown or guard pull) and finishes with chokes and joint locks, even from the bottom.',
+    stance: { width: 0.18, depth: 0.2, crouch: 0.08, lean: 0.15, twist: 0.3, bounce: 0.004 },
+    guard: { lead: [0.24, 0.06, 0.72], rear: [0.16, -0.06, 0.74], coverage: 0.2 },
+    techniques: { clinchEntry: 3, doubleLeg: 2, guardPull: 2, jab: 1, teep: 1 },
+    combos: [['jab', 'clinchEntry'], ['teep', 'doubleLeg']],
+    comboRate: 0.3, aggression: 0.5, footwork: 0.5, rangePref: 0.95,
+    defense: { block: 0.45, slip: 0.1, retreat: 0.3, check: 0, sprawl: 0.6 },
+    grapple: { takedown: 0.55, tdDefense: 0.5, clinch: 0.7, throw: 0.4, top: 0.9, bottom: 0.95, submission: 0.95, escape: 0.85 },
+    groundPlan: 'submit',
+    attrs: { strength: 13, dexterity: 13, endurance: 16, durability: 13, technique: 17 },
+    height: 176, weight: 76,
+  },
+  judo: {
+    name: 'Judo', category: 'grappling',
+    description: 'Grip fighting in the clinch and explosive throws onto the back, then pins and armlocks.',
+    stance: { width: 0.2, depth: 0.16, crouch: 0.05, lean: 0.1, twist: 0.2, bounce: 0 },
+    guard: { lead: [0.3, 0.06, 0.78], rear: [0.25, -0.06, 0.74], coverage: 0.15 },
+    techniques: { clinchEntry: 5, hipThrow: 3, doubleLeg: 0.5, jab: 0.5 },
+    combos: [['clinchEntry']],
+    comboRate: 0.2, aggression: 0.6, footwork: 0.5, rangePref: 0.9,
+    defense: { block: 0.4, slip: 0.05, retreat: 0.25, check: 0, sprawl: 0.8 },
+    grapple: { takedown: 0.6, tdDefense: 0.85, clinch: 0.95, throw: 0.95, top: 0.75, bottom: 0.6, submission: 0.65, escape: 0.75 },
+    groundPlan: 'submit',
+    attrs: { strength: 16, dexterity: 14, endurance: 15, durability: 14, technique: 16 },
+    height: 178, weight: 81,
+  },
+  mma: {
+    name: 'MMA',
+    description: 'Mixed martial arts: kickboxing, wrestling and submissions, switching ranges as needed.',
+    stance: { width: 0.17, depth: 0.2, crouch: 0.07, lean: 0.1, twist: 0.4, bounce: 0.008 },
+    guard: { lead: [0.2, 0.06, 0.84], rear: [0.13, -0.05, 0.86], coverage: 0.3 },
+    techniques: { jab: 4, cross: 3, leadHook: 2, roundKick: 2, doubleLeg: 2, clinchEntry: 1, knee: 0.8 },
+    combos: [['jab', 'cross'], ['jab', 'cross', 'roundKick'], ['cross', 'doubleLeg'], ['jab', 'leadHook', 'cross']],
+    comboRate: 0.5, aggression: 0.6, footwork: 0.75, rangePref: 1,
+    defense: { block: 0.45, slip: 0.3, retreat: 0.25, check: 0.3, sprawl: 0.8 },
+    grapple: { takedown: 0.75, tdDefense: 0.75, clinch: 0.7, throw: 0.45, top: 0.8, bottom: 0.7, submission: 0.7, escape: 0.75 },
+    groundPlan: 'mixed',
+    attrs: { strength: 15, dexterity: 15, endurance: 16, durability: 15, technique: 15 },
+    height: 178, weight: 77,
   },
   brawler: {
     name: 'Untrained brawler',
@@ -102,8 +165,71 @@ export const STYLES = {
     comboRate: 0.3, aggression: 0.65, footwork: 0.3, rangePref: 0.95,
     defense: { block: 0.6, slip: 0, retreat: 0.4, check: 0 },
     attrs: { strength: 12, dexterity: 10, endurance: 10, durability: 12, technique: 4 },
+    grapple: { takedown: 0.35, tdDefense: 0.3, clinch: 0.45, throw: 0.2, top: 0.4, bottom: 0.2, submission: 0.05, escape: 0.3 },
     height: 180, weight: 85,
   },
 };
 
+// ---------------------------------------------------------------- animals
+// For animals a "style" is the species' natural fighting behavior.
+const ANIMAL_GUARD = { lead: [0, 0, 0], rear: [0, 0, 0], coverage: 0 };
+Object.assign(STYLES, {
+  goose: {
+    name: 'Goose', category: 'animal', species: 'goose',
+    description: 'Canada goose (~4.5 kg): hisses, bites with a serrated beak and beats with the bony knob of the wing; leaps at faces.',
+    stance: { crouch: 0 }, guard: ANIMAL_GUARD,
+    techniques: { gooseBite: 4, gooseWing: 3, gooseLeap: 1 },
+    combos: [['gooseBite', 'gooseWing'], ['gooseWing', 'gooseWing']],
+    comboRate: 0.4, aggression: 0.75, footwork: 0.7, rangePref: 0.9,
+    defense: { block: 0, slip: 0, retreat: 1, check: 0 },
+    grapple: {},
+    attrs: { strength: 10, dexterity: 13, endurance: 12, durability: 10, technique: 8 },
+    height: 80, weight: 4.5,
+  },
+  dog: {
+    name: 'Dog (German Shepherd)', category: 'animal', species: 'dog',
+    description: 'Trained working dog (~35 kg): lunges, bites and holds on a limb, shakes, drags the target down.',
+    stance: { crouch: 0.05 }, guard: ANIMAL_GUARD,
+    techniques: { dogBite: 5, dogLunge: 1.5 },
+    combos: [['dogLunge', 'dogBite']],
+    comboRate: 0.5, aggression: 0.75, footwork: 0.7, rangePref: 0.9,
+    defense: { block: 0, slip: 0.3, retreat: 0.7, check: 0 },
+    grapple: { pin: 0.4 },
+    attrs: { strength: 12, dexterity: 15, endurance: 15, durability: 12, technique: 10 },
+    height: 62, weight: 35,
+  },
+  bengalTiger: {
+    name: 'Tiger (Bengal)', category: 'animal', species: 'tiger',
+    description: 'Apex ambush predator (~200 kg): stalks low, pounces, slashes with claws and bites the neck, pins prey.',
+    stance: { crouch: 0.12 }, guard: ANIMAL_GUARD,
+    techniques: { clawSwipe: 4, tigerBite: 2, pounce: 1.5 },
+    combos: [['pounce', 'tigerBite'], ['clawSwipe', 'clawSwipe']],
+    comboRate: 0.45, aggression: 0.7, footwork: 0.6, rangePref: 1.0,
+    defense: { block: 0, slip: 0.4, retreat: 0.6, check: 0 },
+    grapple: { pin: 0.95, escape: 0.9 },
+    attrs: { strength: 20, dexterity: 18, endurance: 13, durability: 18, technique: 14 },
+    height: 100, weight: 200,
+  },
+  grizzly: {
+    name: 'Grizzly bear', category: 'animal', species: 'bear',
+    description: 'Brown bear (~270 kg): charges, delivers crushing paw swipes, bites and mauls a downed opponent.',
+    stance: { crouch: 0 }, guard: ANIMAL_GUARD,
+    techniques: { bearSwipe: 4, bearBite: 2, bearCharge: 1 },
+    combos: [['bearCharge', 'bearSwipe'], ['bearSwipe', 'bearBite']],
+    comboRate: 0.45, aggression: 0.65, footwork: 0.3, rangePref: 0.95,
+    defense: { block: 0, slip: 0, retreat: 0.3, check: 0 },
+    grapple: { pin: 0.9, escape: 0.85 },
+    attrs: { strength: 20, dexterity: 12, endurance: 14, durability: 20, technique: 12 },
+    height: 105, weight: 270,
+  },
+});
+
+/** Per-species body proportions handed to the body plan builder. */
+export const SPECIES_BODY = {
+  dog: { length: 1.05, neck: 0.38, head: 0.38, headR: 0.12, width: 0.24, tail: 0.7, neckAngle: 0.75 },
+  tiger: { length: 1.55, neck: 0.32, head: 0.34, headR: 0.17, width: 0.32, tail: 0.9, neckAngle: 0.3 },
+  bear: { length: 1.45, neck: 0.3, head: 0.34, headR: 0.18, width: 0.42, tail: 0.1, neckAngle: 0.2 },
+};
+
 export const STYLE_IDS = Object.keys(STYLES);
+export const styleCategory = (id) => STYLES[id].category || 'striking';

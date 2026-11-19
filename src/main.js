@@ -10,12 +10,17 @@ import { Recorder } from './playback/recorder.js';
 import { ReplaySource } from './playback/replay.js';
 import { renderTeams, hydrateTeams, fighterFromStyle } from './ui/setup.js';
 import { Hud, fmtTime } from './ui/hud.js';
+import { RULESETS } from './sim/rules.js';
+import { buildAiKit, AI_PIPELINES, freezeCamera } from './export/pipelines.js';
 
 const $ = (id) => document.getElementById(id);
 
 // ---------------------------------------------------------------- setup state
 const state = {
   seed: randomSeed(),
+  mode: 'sport',
+  realism: 1,
+  grappling: false,
   timeLimit: 180,
   threeKD: true,
   background: 'dojo',
@@ -30,13 +35,19 @@ function randomSeed() { return Math.floor(Math.random() * 1e9); }
 function buildConfig() {
   return {
     seed: state.seed,
-    rules: { timeLimit: state.timeLimit, threeKnockdownRule: state.threeKD },
+    rules: { mode: state.mode, realism: state.realism, grappling: state.grappling, timeLimit: state.timeLimit, threeKnockdownRule: state.threeKD },
     arena: { background: state.background },
     teams: state.teams.map((t) => ({ name: t.name, color: t.color, fighters: t.fighters.map((f) => ({ ...f })) })),
   };
 }
 
 function syncSetupInputs() {
+  $('mode').value = state.mode;
+  $('modeDesc').textContent = RULESETS[state.mode].description;
+  $('threeKD').disabled = state.mode !== 'sport';
+  $('realism').value = String(Math.round(state.realism * 100));
+  $('realismOut').value = `${Math.round(state.realism * 100)}%`;
+  $('grappling').checked = state.grappling;
   $('seed').value = state.seed;
   $('timeLimit').value = String(state.timeLimit);
   $('threeKD').checked = state.threeKD;
@@ -46,12 +57,27 @@ function syncSetupInputs() {
 
 for (const [id, p] of Object.entries(PRESETS)) $('preset').append(new Option(p.label, id));
 for (const [id, b] of Object.entries(BACKGROUNDS)) $('background').append(new Option(b.name, id));
+for (const [id, r] of Object.entries(RULESETS)) $('mode').append(new Option(r.name, id));
+$('mode').addEventListener('change', (e) => {
+  state.mode = e.target.value;
+  state.timeLimit = RULESETS[state.mode].defaultTimeLimit;
+  syncSetupInputs();
+});
+$('realism').addEventListener('input', (e) => {
+  state.realism = Number(e.target.value) / 100;
+  $('realismOut').value = `${e.target.value}%`;
+});
+$('grappling').addEventListener('change', (e) => { state.grappling = e.target.checked; });
 $('preset').addEventListener('change', (e) => {
   const p = PRESETS[e.target.value];
   if (!p) return;
   state.teams = hydrateTeams(p.config.teams);
-  if (p.config.rules?.timeLimit != null) state.timeLimit = p.config.rules.timeLimit;
-  if (p.config.rules?.threeKnockdownRule != null) state.threeKD = p.config.rules.threeKnockdownRule;
+  const r = p.config.rules || {};
+  state.mode = r.mode || 'sport';
+  state.timeLimit = r.timeLimit ?? RULESETS[state.mode].defaultTimeLimit;
+  state.threeKD = r.threeKnockdownRule ?? true;
+  state.grappling = !!r.grappling;
+  state.realism = r.realism ?? 1;
   syncSetupInputs();
 });
 $('seed').addEventListener('input', (e) => { state.seed = Math.max(0, Math.floor(Number(e.target.value) || 0)); });
@@ -64,7 +90,10 @@ $('loadRec').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   try {
-    startReplay(JSON.parse(await file.text()));
+    const rec = JSON.parse(await file.text());
+    if (rec.frames?.length) startReplay(rec);
+    else if (rec.config) startLive(rec.config); // seed-only file: re-simulate
+    else throw new Error('no frames or config in file');
   } catch (err) {
     alert(`Could not load recording: ${err.message}`);
   }
@@ -151,6 +180,29 @@ $('saveRec').addEventListener('click', () => {
   if (!app.recorder) return;
   const data = app.recorder.toJSON();
   download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `fight-${app.config.seed}.json`);
+});
+$('poseView').addEventListener('click', () => {
+  renderer.mode = renderer.mode === 'openpose' ? 'stick' : 'openpose';
+  $('poseView').classList.toggle('on', renderer.mode === 'openpose');
+});
+$('aiKit').addEventListener('click', () => {
+  const rec = app.mode === 'replay' ? app.source.rec : JSON.parse(JSON.stringify(app.recorder.toJSON()));
+  // re-play the recording through a camera that frames it the same way as the view
+  const src = new ReplaySource(rec);
+  const cam = new Camera();
+  cam.setViewport(camera.width, camera.height);
+  Object.assign(cam, { yaw: camera.yaw, pitch: camera.pitch, zoom: camera.zoom });
+  const views = [];
+  const dt = 1 / rec.fps;
+  for (let t = 0; t <= src.duration + 1e-9; t += dt) {
+    src.seek(t);
+    const snap = src.snapshot();
+    cam.follow(snap.entities, t === 0 ? 10 : dt);
+    views.push({ snap, cam: freezeCamera(cam) });
+  }
+  const kit = buildAiKit(rec, views, cam, { pipeline: 'wanPose' });
+  kit.alternatives = AI_PIPELINES;
+  download(new Blob([JSON.stringify(kit)], { type: 'application/json' }), `fight-${rec.config.seed}-ai-kit.json`);
 });
 $('scrub').addEventListener('input', (e) => { if (app.mode === 'replay') app.source.seek(Number(e.target.value)); });
 $('recVideo').addEventListener('click', () => (app.video ? stopVideo() : startVideo()));

@@ -33,9 +33,11 @@ export class ReplaySource {
       arenaRadius: rec.arenaRadius,
       teams: rec.teams,
       entities: rec.entities.map((meta, i) => {
+        if (!A.e[i]) return null;
         const a = A.e[i];
         const b = B.e[i];
         const names = rec.skeletons[meta.plan].joints;
+        if (!a || !b) return null;
         const joints = {};
         names.forEach((n, ji) => {
           const o = ji * 3;
@@ -49,11 +51,16 @@ export class ReplaySource {
           ...meta,
           state: STATE_CODES[a.s],
           outReason: a.o,
+          dead: !!a.d,
+          facing: a.f ?? 0,
+          scale: meta.scale ?? meta.heightM ?? 1.75,
           joints,
-          vitals: { consciousness: a.v[0], body: a.v[1], legs: a.v[2], stamina: a.v[3] },
+          vitals: { consciousness: a.v[0], body: a.v[1], legs: a.v[2], stamina: a.v[3], blood: a.v[4] ?? 1 },
+          injuries: [],
         };
-      }),
+      }).filter(Boolean),
       effects: effectsAt(rec.events, this.t),
+      skeletons: rec.skeletons,
     };
   }
 }

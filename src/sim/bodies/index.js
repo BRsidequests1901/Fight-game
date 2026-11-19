@@ -1,10 +1,13 @@
 // Registry of body plans. A body plan supplies anthropometrics, a skeleton
-// (joints + bones) and a pose generator. Future plans (goose, dog, bear...)
-// plug in here and the renderer / recorder work unchanged.
+// (joints + bones) and a pose generator. Renderer and recorder are generic.
 import { humanPlan } from './human.js';
+import { quadrupedPlan } from './quadruped.js';
+import { birdPlan } from './bird.js';
 
 export const BODY_PLANS = {
   human: humanPlan,
+  quadruped: quadrupedPlan,
+  bird: birdPlan,
 };
 
 export function getBodyPlan(id) {

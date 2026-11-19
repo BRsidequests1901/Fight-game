@@ -7,8 +7,9 @@ export function vitalsOf(f) {
   return {
     consciousness: f.consciousness(),
     body: 1 - f.bodyTrauma,
-    legs: 1 - f.legTrauma,
+    legs: f.canStand() ? 1 - f.legTrauma : 0,
     stamina: f.staminaFrac(),
+    blood: Math.max(0, 1 - f.bloodLossFrac() / 0.45),
   };
 }
 
@@ -47,12 +48,18 @@ export function snapshotFromSim(sim) {
       team: f.team,
       color: teams[f.team].color,
       style: f.style.name,
+      species: f.species.id,
       plan: f.plan.id,
       state: f.state,
+      role: f.role,
+      dead: f.dead,
       outReason: f.outReason,
       headRadius: f.body.headRadius,
+      scale: f.body.height,
+      facing: f.facing,
       joints: f.plan.pose(f, sim.time),
       vitals: vitalsOf(f),
+      injuries: f.injuries.map((i) => i.label),
     })),
     effects: effectsAt(sim.events, sim.time),
   };
