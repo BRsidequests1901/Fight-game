@@ -1,0 +1,22 @@
+# Runs the test suite on every push.
+# Publishing is handled by GitHub Pages itself ("Deploy from a branch"), which
+# serves this branch's files as-is: there is no build step.
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test

@@ -8,15 +8,15 @@ you can send to an AI renderer.
 
 ## Play it
 
-- **Online:** once GitHub Pages is on, the game lives at `https://brsidequests1901.github.io/Fight-game/`.
-  Every push re-runs the tests and redeploys (`.github/workflows/pages.yml`).
+- **Online:** https://brsidequests1901.github.io/Fight-game/. GitHub Pages republishes the
+  branch automatically on every push; `.github/workflows/tests.yml` runs the tests.
 - **iPhone / iPad:** open that link in Safari, tap **Share → Add to Home Screen**. It then opens
   full-screen like an app and also works offline after the first visit.
   Drag to orbit, pinch to zoom, double-tap to reset the camera.
 - **Android:** open the link in Chrome and choose **Install app** / **Add to Home screen**.
 
-One-time GitHub setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-(Pages on a private repository requires a paid GitHub plan; the published site is public.)
+Hosting setup (already done): repo **Settings → Pages → Deploy from a branch**, branch
+`claude/fighter-simulator-game-ny7url`, folder `/ (root)`.
 
 ## Run it locally
 
