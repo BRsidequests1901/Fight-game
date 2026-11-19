@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fight Sim</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Fight Sim</h1>
+    <span class="tag">v0.1 · physics &amp; biology sandbox</span>
+  </header>
+
+  <main>
+    <section id="setup" class="view">
+      <div class="setup-bar">
+        <label>Preset
+          <select id="preset"><option value="">— choose —</option></select>
+        </label>
+        <label>Seed
+          <span class="row"><input id="seed" type="number" min="0" step="1" /><button id="reseed" class="icon" title="Random seed">🎲</button></span>
+        </label>
+        <label>Time limit
+          <select id="timeLimit">
+            <option value="60">1 min</option><option value="120">2 min</option><option value="180" selected>3 min</option>
+            <option value="300">5 min</option><option value="0">No limit</option>
+          </select>
+        </label>
+        <label class="check"><input id="threeKD" type="checkbox" checked /> 3-knockdown rule</label>
+        <label>Background
+          <select id="background"></select>
+        </label>
+        <label class="file">Load recording
+          <input id="loadRec" type="file" accept=".json,application/json" />
+        </label>
+        <button id="start" class="primary">Fight!</button>
+      </div>
+      <div id="teams" class="teams"></div>
+      <p class="footnote">Attributes use a tabletop-style scale: 10 = average untrained adult, 14–16 trained athlete, 18–20 elite. Pick only a style and the style's defaults are used.</p>
+    </section>
+
+    <section id="arena" class="view hidden">
+      <div class="stage">
+        <canvas id="canvas"></canvas>
+        <div id="clock" class="clock"></div>
+        <div id="banner" class="banner hidden"></div>
+        <div class="hint">drag to orbit · scroll to zoom · double-click to reset camera</div>
+      </div>
+      <aside class="side">
+        <div id="hud" class="hud"></div>
+        <h3>Fight log</h3>
+        <ol id="log" class="log"></ol>
+      </aside>
+      <div class="controls">
+        <button id="back">← Setup</button>
+        <button id="pause">⏸ Pause</button>
+        <label>Speed
+          <select id="speed">
+            <option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
+          </select>
+        </label>
+        <button id="restart" title="Same seed: identical fight">↺ Replay same seed</button>
+        <button id="newSeed">🎲 New seed</button>
+        <button id="recVideo">⏺ Record video</button>
+        <button id="saveRec">⬇ Save recording</button>
+        <input id="scrub" type="range" min="0" max="1" step="0.01" value="0" class="hidden" />
+      </div>
+    </section>
+  </main>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "fight-sim",
+  "version": "0.1.0",
+  "description": "Physics- and biology-grounded fighting simulator. Stick-figure renderer on a deterministic, renderer-agnostic simulation core.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node tools/serve.js",
+    "test": "node --test test/*.test.js",
+    "batch": "node tools/batch.js"
+  },
+  "engines": { "node": ">=18" }
+}
