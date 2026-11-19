@@ -207,20 +207,45 @@ $('aiKit').addEventListener('click', () => {
 $('scrub').addEventListener('input', (e) => { if (app.mode === 'replay') app.source.seek(Number(e.target.value)); });
 $('recVideo').addEventListener('click', () => (app.video ? stopVideo() : startVideo()));
 
-// camera interaction
-let drag = null;
-canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener('pointermove', (e) => {
-  if (!drag) return;
-  camera.orbit(-(e.clientX - drag.x) * 0.006, (e.clientY - drag.y) * 0.004);
-  drag = { x: e.clientX, y: e.clientY };
+// camera interaction: one finger / mouse drag orbits, two-finger pinch or wheel zooms
+const pointers = new Map();
+let pinchDist = 0;
+let lastTap = 0;
+const pinchSpan = () => {
+  const [a, b] = [...pointers.values()];
+  return Math.hypot(a.x - b.x, a.y - b.y);
+};
+canvas.addEventListener('pointerdown', (e) => {
+  try { canvas.setPointerCapture(e.pointerId); } catch { /* not all pointers can be captured */ }
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) pinchDist = pinchSpan();
+  if (e.pointerType === 'touch' && pointers.size === 1) {
+    if (e.timeStamp - lastTap < 300) resetCamera();
+    lastTap = e.timeStamp;
+  }
 });
-canvas.addEventListener('pointerup', () => { drag = null; });
+canvas.addEventListener('pointermove', (e) => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) return;
+  const cur = { x: e.clientX, y: e.clientY };
+  pointers.set(e.pointerId, cur);
+  if (pointers.size === 1) {
+    camera.orbit(-(cur.x - prev.x) * 0.006, (cur.y - prev.y) * 0.004);
+  } else if (pointers.size === 2) {
+    const d = pinchSpan();
+    if (pinchDist > 0) camera.zoom = Math.max(0.3, Math.min(4, camera.zoom * (d / pinchDist)));
+    pinchDist = d;
+  }
+});
+const endPointer = (e) => { pointers.delete(e.pointerId); pinchDist = pointers.size === 2 ? pinchSpan() : 0; };
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
   camera.zoom = Math.max(0.3, Math.min(4, camera.zoom * Math.exp(-e.deltaY * 0.001)));
 }, { passive: false });
-canvas.addEventListener('dblclick', () => { camera.yaw = 0.3; camera.pitch = 0.28; camera.zoom = 1; });
+function resetCamera() { camera.yaw = 0.3; camera.pitch = 0.28; camera.zoom = 1; }
+canvas.addEventListener('dblclick', resetCamera);
 window.addEventListener('resize', () => { if (app.source) renderer.resize(); });
 
 // ---------------------------------------------------------------- video capture
@@ -293,6 +318,11 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+
+// installable app: offline support (skipped on localhost so development always loads fresh files)
+if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 
 // expose for debugging / automation
 window.fightSim = { app, state, startLive, startReplay, camera };

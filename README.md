@@ -6,10 +6,23 @@ simulation play out. Version 0.1 draws stick figures, but the engine underneath
 is built to grow: bigger groups, other species, richer visuals and recorded fights
 you can send to an AI renderer.
 
-## Run it
+## Play it
+
+- **Online:** once GitHub Pages is on, the game lives at `https://brsidequests1901.github.io/Fight-game/`.
+  Every push re-runs the tests and redeploys (`.github/workflows/pages.yml`).
+- **iPhone / iPad:** open that link in Safari, tap **Share → Add to Home Screen**. It then opens
+  full-screen like an app and also works offline after the first visit.
+  Drag to orbit, pinch to zoom, double-tap to reset the camera.
+- **Android:** open the link in Chrome and choose **Install app** / **Add to Home screen**.
+
+One-time GitHub setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+(Pages on a private repository requires a paid GitHub plan; the published site is public.)
+
+## Run it locally
 
 ```bash
 npm start          # zero-dependency static server → http://localhost:8080
+                   # (phone on the same Wi-Fi: http://<your-computer-ip>:8080)
 npm test           # headless simulation tests (Node 18+)
 npm run batch -- tigerVsFive 500   # run 500 fights headless, print win rates
 ```
